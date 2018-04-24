@@ -11,9 +11,11 @@ COMPI=../COMPI
 
 2DLAT=../2DLATTICE
 
+LOCSEARCH=../LOCSEARCH
+
 
 # include folders
-INCLUDE = -I$(SNOWGOOSE) -I$(COMPI) -I$(2DLAT)
+INCLUDE = -I$(SNOWGOOSE) -I$(COMPI) -I$(2DLAT) -I$(LOCSEARCH)
 
 # C++ compiler options
 CPPOPTS = --std=c++14 $(INCLUDE) -g
@@ -25,7 +27,7 @@ LIBS =
 LDFLAGS = -pthread 
 
 
-all: testppproblem.exe
+all: testppproblem.exe testlocsearch.exe
 
 -include deps.inc
 
