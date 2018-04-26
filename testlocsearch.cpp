@@ -18,6 +18,7 @@
 #include <pairpotentials.hpp>
 #include <methods/rosenbrock/rosenbrockmethod.hpp>
 #include <methods/advancedcoordescent/advancedcoordescent.hpp>
+#include <funccnt.hpp>
 #include "ppproblem.hpp"
 
 /*
@@ -38,8 +39,12 @@ void acdSearch(double& v, double* x, const COMPI::MPProblem<double>& prob) {
 void rosenSearch(double& v, double* x, const COMPI::MPProblem<double>& prob) {
     LOCSEARCH::RosenbrockMethod<double> desc(prob);
     desc.getOptions().mHInit = std::vector<double>(prob.mBox->mDim, 1.);
-    desc.getOptions().mMaxStepsNumber = 1000;
-//    desc.getOptions().mDoTracing = true;
+    desc.getOptions().mMaxStepsNumber = 10000;
+    desc.getOptions().mMinGrad = 1e-3;
+    desc.getOptions().mHLB = 1e-4 * desc.getOptions().mMinGrad;
+    
+    desc.getOptions().mDoOrt = false;
+    desc.getOptions().mDoTracing = true;
     
     std::cout << "Rosenbrock before v = " << v << std::endl;
     bool rv = desc.search(x, v);
@@ -57,16 +62,20 @@ int main(int argc, char** argv) {
     constexpr int nlayers = 4;
     std::vector<lattice::AtomTypes> atoms(nlayers, lattice::AtomTypes::CARBON);
     lattice::PairPotentialProblem uprob(lattice::ljpotent, length, atoms);
-    snowgoose::RandomPointGenerator<double> rg(*(uprob.mBox));
+    constexpr int npoints = 30;
+    snowgoose::RandomPointGenerator<double> rg(*(uprob.mBox), npoints, 1);
     const int n = uprob.mVarTypes.size();
     double x[n];
     double bestx[n];
-    constexpr int npoints = 100;
     double v = std::numeric_limits<double>::max();
-    for (int i = 0; i < npoints; i++) {
-        rg.getPoint(x);
+    auto fcnt = std::make_shared<COMPI::FuncCnt<double>>(uprob.mObjectives[0]);
+    uprob.mObjectives.pop_back();
+    uprob.mObjectives.push_back(fcnt);
+    while(rg.getPoint(x)){
         double nv = uprob.mObjectives[0]->func(x);
+        fcnt->reset();
         search(nv, x, uprob);
+        std::cout << "took " << fcnt->mCounters.mFuncCalls << " function calls\n";
         /*
         std::cout << nv << " = ";
         std::cout << "f(" << snowgoose::VecUtils::vecPrint(n, x) << ")\n";
