@@ -27,7 +27,7 @@ LIBS =
 LDFLAGS = -pthread 
 
 
-all: testppproblem.exe testlocsearch.exe
+all: testppproblem.exe testlocsearch_acd_1000_count_iter.exe
 
 -include deps.inc
 
