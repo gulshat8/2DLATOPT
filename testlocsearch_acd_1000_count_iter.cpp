@@ -10,6 +10,7 @@
  *
  * Created on June 5, 2017, 3:42 PM
  */
+#include "mpi.h"
 #include <iostream>
 #include <algorithm>
 #include <limits>
